@@ -1,0 +1,176 @@
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbzfJZw838fMArgu87J2hibuoYMrMj3FizMHXGhlklYudP_eMVLRo8bclWBFs7SmUT8TeQ/exec";
+
+let cart = [];
+let allProducts = [];
+
+/* LOAD PRODUCTS */
+function loadData(){
+  fetch(API_URL)
+    .then(res => res.json())
+    .then(data => {
+      allProducts = data;
+      renderProducts(allProducts);
+
+      document.getElementById("lastUpdated").innerText =
+        "Updated: " + new Date().toLocaleTimeString();
+    })
+    .catch(()=> toast("❌ API error"));
+}
+
+/* SHOW PRODUCTS */
+function renderProducts(products){
+  let container = document.getElementById("stockList");
+  container.innerHTML = "";
+
+  products.forEach(item=>{
+    let cls="", text=item.qty;
+
+    if(item.qty===0){ text="Out"; cls="out"; }
+    else if(item.qty<5){ cls="low"; }
+
+    let id=btoa(item.product);
+
+    let div=document.createElement("div");
+    div.className="card";
+
+    div.innerHTML=`
+      <div>
+        <div class="name">${item.product}</div>
+        <div class="${cls}">Stock: ${text}</div>
+      </div>
+
+      <div>
+        <input type="number" min="1" max="${item.qty}" value="1" id="qty-${id}" class="qty">
+        ${item.qty===0 ? "Out" :
+        `<button class="add" onclick="addToCart('${item.product}',${item.qty})">Add</button>`}
+      </div>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+/* ADD TO CART */
+function addToCart(product, stockQty){
+  let qty=parseInt(document.getElementById("qty-"+btoa(product)).value);
+
+  if(!qty||qty<=0) return toast("Enter valid qty");
+  if(qty>stockQty) return toast("Not enough stock");
+
+  let exist=cart.find(i=>i.product===product);
+  if(exist){exist.qty+=qty;}
+  else{cart.push({product,qty});}
+
+  updateCart();
+  toast("✅ Added");
+}
+
+/* CART COUNT */
+function updateCart(){
+  document.getElementById("cartCount").innerText=cart.length;
+}
+
+/* OPEN CART */
+function openCart(){
+  let div=document.getElementById("cartItems");
+
+  let form = `
+    <input id="custName" placeholder="👤 Name">
+    <input id="custPhone" placeholder="📞 Phone">
+  `;
+
+  if(cart.length===0){
+    div.innerHTML = form + "<br>Cart empty";
+  } else {
+    div.innerHTML = form + cart.map((i,idx)=>`
+      <div class="cart-item">
+        ${i.product} (x${i.qty})
+        <button class="remove" onclick="removeItem(${idx})">X</button>
+      </div>
+    `).join("");
+  }
+
+  document.getElementById("cartBox").style.display="block";
+}
+
+/* CLOSE CART */
+function closeCart(){
+  document.getElementById("cartBox").style.display="none";
+}
+
+/* REMOVE ITEM */
+function removeItem(i){
+  cart.splice(i,1);
+  openCart();
+  updateCart();
+}
+
+/* CLEAR CART */
+function clearCart(){
+  cart=[];
+  openCart();
+  updateCart();
+}
+
+/* SEND ORDER */
+function sendCart(){
+  if(!cart.length) return toast("Cart empty");
+
+  let name=document.getElementById("custName").value.trim();
+  let phone=document.getElementById("custPhone").value.trim();
+
+  if(!name) return toast("Enter name");
+  if(!phone) return toast("Enter phone");
+
+  let orderData = {
+    name: name,
+    phone: phone,
+    items: cart
+  };
+
+  fetch(API_URL,{
+    method:"POST",
+    body: JSON.stringify(orderData)
+  })
+  .then(()=>{
+    toast("✅ Order saved");
+
+    // WhatsApp
+    let msg = "🛒 NEW ORDER\n\n";
+    msg += "👤 "+name+"\n📞 "+phone+"\n\n";
+
+    cart.forEach(i=>{
+      msg += `• ${i.product} x${i.qty}\n`;
+    });
+
+    window.open(`https://wa.me/916360397604?text=${encodeURIComponent(msg)}`);
+
+    cart=[];
+    updateCart();
+    closeCart();
+  })
+  .catch(()=> toast("❌ Error sending"));
+}
+
+/* SEARCH */
+function searchProduct(){
+  let v=document.getElementById("search").value.toLowerCase();
+  renderProducts(allProducts.filter(p=>p.product.toLowerCase().includes(v)));
+}
+
+/* REFRESH */
+function refreshData(){ loadData(); }
+
+/* TOAST */
+function toast(msg){
+  let t=document.createElement("div");
+  t.innerText=msg;
+  t.style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#000;color:#fff;padding:10px;border-radius:8px;";
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2000);
+}
+
+/* INIT */
+loadData();
+</script>
