@@ -1,0 +1,136 @@
+html id="g2f7xk"
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Hardware Shop Stock</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial;
+      margin: 0;
+      background: #eef2f7;
+    }
+
+    header {
+      background: #1f2d3d;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 22px;
+    }
+
+    .container {
+      padding: 15px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th {
+      background: #3498db;
+      color: white;
+      padding: 12px;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+
+    tr:hover {
+      background: #f1f1f1;
+    }
+
+    .out {
+      color: red;
+      font-weight: bold;
+    }
+
+    footer {
+      text-align: center;
+      padding: 10px;
+      font-size: 12px;
+      color: gray;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>ELITE SANITARY STORE</header>
+
+<div class="container">
+
+  <input type="text" id="search" placeholder="Search product..." onkeyup="searchProduct()">
+
+  <table id="stockTable">
+    <tr>
+      <th>Product</th>
+      <th>Quantity</th>
+    </tr>
+  </table>
+
+</div>
+
+<footer>
+  Live Stock | Updated from Google Sheet
+</footer>
+
+<script>
+  const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7ErfBOZPbe4khlHRrx5wgEFl6D13sWJ9Tk9TKhRVSgJ3edXB6Pe7NHygWEHsAbf9mcXkypsvdf9nU/pub?gid=0&single=true&output=csv";
+
+  fetch(sheetURL)
+    .then(res => res.text())
+    .then(data => {
+      let rows = data.split("\n").slice(1);
+      let table = document.getElementById("stockTable");
+
+      rows.forEach(row => {
+        let cols = row.split(",");
+        let product = cols[0];
+        let qty = parseInt(cols[1]);
+
+        if (!product) return;
+
+        let tr = document.createElement("tr");
+
+        let qtyText = qty === 0 ? "Out of Stock" : qty;
+
+        tr.innerHTML = `
+          <td>${product}</td>
+          <td class="${qty === 0 ? "out" : ""}">${qtyText}</td>
+        `;
+
+        table.appendChild(tr);
+      });
+    });
+
+  function searchProduct() {
+    let input = document.getElementById("search").value.toLowerCase();
+    let rows = document.querySelectorAll("#stockTable tr");
+
+    rows.forEach((row, index) => {
+      if (index === 0) return;
+      let text = row.innerText.toLowerCase();
+      row.style.display = text.includes(input) ? "" : "none";
+    });
+  }
+</script>
+
+</body>
+</html>
