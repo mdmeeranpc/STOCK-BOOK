@@ -136,7 +136,6 @@ button {
 
 </div>
 
-<!-- CART -->
 <div id="cartBox">
   <h3>🛒 Your Cart</h3>
   <div id="cartItems"></div>
@@ -147,7 +146,7 @@ button {
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzfJZw838fMArgu87J2hibuoYMrMj3FizMHXGhlklYudP_eMVLRo8bclWBFs7SmUT8TeQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyymzyoUrYUZgounhIxCXdlYrIBYMoMTIFcHdTTOgH773Oxekb0P4TSODWUhpnvewx-nA/exec";
 
 let cart = [];
 let allProducts = [];
@@ -253,7 +252,7 @@ function clearCart(){
   updateCart();
 }
 
-/* SEND ORDER */
+/* SEND ORDER (FIXED) */
 function sendCart(){
   if(!cart.length) return toast("Cart empty");
 
@@ -263,11 +262,15 @@ function sendCart(){
   if(!name) return toast("Enter name");
   if(!phone) return toast("Enter phone");
 
-  let orderData = { name, phone, items: cart };
-
   fetch(API_URL,{
     method:"POST",
-    body: JSON.stringify(orderData)
+    body: JSON.stringify({
+      action: "add",
+      name: name,
+      phone: phone,
+      items: cart.map(i => `${i.product} x${i.qty}`).join(", "),
+      cart: cart
+    })
   })
   .then(()=>{
     toast("Order saved");
