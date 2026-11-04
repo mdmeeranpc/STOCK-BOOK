@@ -1,0 +1,14 @@
+{
+  "name": "agri-tech-app",
+  "version": "3.0.0",
+  "description": "AGRI TECH 3.0 - Complete Smart Farming & Home Gardening Application",
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "start:backend": "npm --prefix backend start",
+    "build:frontend": "npm --prefix frontend run build"
+  },
+  "dependencies": {
+    "mongodb": "^7.8.0"
+  }
+}
